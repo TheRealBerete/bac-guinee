@@ -1,0 +1,14 @@
+node_modules/
+.next/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+*.egg
+.env
+.env.local
+.env.*.local
+bac.db
+*.db-journal
+*.db-wal
+*.db-shm

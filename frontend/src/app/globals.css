@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Stack Sans Text";
+  src: url("/fonts/stack-sans-text.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9f8fb;
+  --color-bg-tertiary: #e1e4ea;
+  --color-primary-base: #c6bdfa;
+  --color-primary-dark: #8c71f6;
+  --color-text-primary: #181b25;
+  --color-text-secondary: #525866;
+  --color-text-tertiary: #99a0ae;
+  --color-border-secondary: #cacfd8;
+  --color-border-soft: #ececf1;
+  --color-toggle-border: #bdb2ff;
+  --color-green-bg: rgba(31, 193, 107, 0.08);
+  --color-green-text: #1fae5a;
+  --color-star: #facc15;
+  --color-hero-gradient-start: #ddd6fb;
+  --color-hero-gradient-end: #c3b6f9;
+  --color-dark: #181b25;
+  --color-dark-hover: #2a2e3a;
+  --font-sans: "Stack Sans Text", Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --radius-pill: 16px;
+  --radius-btn: 10px;
+  --radius-card: 20px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
