@@ -23,7 +23,8 @@ def fuzzy_score(candidate_text: str, query_norm: str) -> float:
 
 def search_by_pv(query: str, session: int | None = None, profil: str | None = None,
                  examen: str | None = None, mention: str | None = None,
-                 origine: str | None = None) -> list[dict]:
+                 origine: str | None = None, centre: str | None = None,
+                 region: str | None = None) -> list[dict]:
     db = get_db()
     params: list = [query]
     sql = "SELECT * FROM candidats WHERE pv = ?"
@@ -42,6 +43,12 @@ def search_by_pv(query: str, session: int | None = None, profil: str | None = No
     if origine:
         sql += " AND origine LIKE ? COLLATE NOCASE"
         params.append(f"%{origine}%")
+    if centre:
+        sql += " AND centre LIKE ? COLLATE NOCASE"
+        params.append(f"%{centre}%")
+    if region:
+        sql += " AND region = ? COLLATE NOCASE"
+        params.append(region)
     sql += " LIMIT 100"
     rows = db.execute(sql, params).fetchall()
     return [dict(r) for r in rows]
@@ -53,6 +60,8 @@ def search_by_name(
     profil: str | None = None,
     examen: str | None = None,
     mention: str | None = None,
+    centre: str | None = None,
+    region: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ) -> tuple[list[dict], int]:
@@ -79,6 +88,12 @@ def search_by_name(
     if mention:
         where_clauses += " AND mention = ?"
         params.append(mention)
+    if centre:
+        where_clauses += " AND centre LIKE ? COLLATE NOCASE"
+        params.append(f"%{centre}%")
+    if region:
+        where_clauses += " AND region = ? COLLATE NOCASE"
+        params.append(region)
 
     rows = db.execute(
         f"SELECT * FROM candidats WHERE {where_clauses} LIMIT 500",
@@ -112,6 +127,8 @@ def search_by_filters(
     examen: str | None = None,
     mention: str | None = None,
     origine: str | None = None,
+    centre: str | None = None,
+    region: str | None = None,
     limit: int = 20,
     offset: int = 0,
 ) -> tuple[list[dict], int]:
@@ -135,6 +152,12 @@ def search_by_filters(
     if origine:
         where_clauses += " AND origine LIKE ? COLLATE NOCASE"
         params.append(f"%{origine}%")
+    if centre:
+        where_clauses += " AND centre LIKE ? COLLATE NOCASE"
+        params.append(f"%{centre}%")
+    if region:
+        where_clauses += " AND region = ? COLLATE NOCASE"
+        params.append(region)
 
     total = db.execute(f"SELECT COUNT(*) FROM candidats WHERE {where_clauses}", params).fetchone()[0]
     rows = db.execute(
@@ -151,6 +174,8 @@ def autodetect_search(
     examen: str | None = None,
     mention: str | None = None,
     origine: str | None = None,
+    centre: str | None = None,
+    region: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[dict], int]:
@@ -159,10 +184,10 @@ def autodetect_search(
     offset = (page - 1) * limit
 
     if not q:
-        return search_by_filters(session, profil, examen, mention, origine, limit=limit, offset=offset)
+        return search_by_filters(session, profil, examen, mention, origine, centre, region, limit=limit, offset=offset)
 
     if is_pv_query(q):
-        results = search_by_pv(q, session, profil, examen, mention, origine)
+        results = search_by_pv(q, session, profil, examen, mention, origine, centre, region)
         return results, len(results)
 
-    return search_by_name(q, session, profil, examen, mention, limit=limit, offset=offset)
+    return search_by_name(q, session, profil, examen, mention, centre, region, limit=limit, offset=offset)

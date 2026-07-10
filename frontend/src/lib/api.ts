@@ -15,6 +15,7 @@ export interface Candidate {
   profil: string;
   profil_nom: string | null;
   examen: string;
+  region: string | null;
   source: string;
 }
 
@@ -59,6 +60,8 @@ export async function search(params: {
   profil?: string;
   examen?: string;
   origine?: string;
+  centre?: string;
+  region?: string;
   page?: number;
   limit?: number;
 }): Promise<SearchResult> {
@@ -68,6 +71,8 @@ export async function search(params: {
   if (params.profil) sp.set("profil", params.profil);
   if (params.examen) sp.set("examen", params.examen);
   if (params.origine) sp.set("origine", params.origine);
+  if (params.centre) sp.set("centre", params.centre);
+  if (params.region) sp.set("region", params.region);
   if (params.page) sp.set("page", String(params.page));
   if (params.limit) sp.set("limit", String(params.limit));
 

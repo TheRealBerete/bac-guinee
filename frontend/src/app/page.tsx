@@ -112,7 +112,7 @@ export default function Home() {
           <div className="text-center max-w-[720px] mx-auto">
             <ScrollReveal>
               <h1 className="text-[clamp(36px,5vw,56px)] font-semibold leading-[1.08] tracking-[-0.96px] mb-5">
-                Résultats du Bac 2026<br />disponibles maintenant
+                Résultats 2026<br />disponibles maintenant
               </h1>
               <p className="text-lg text-text-secondary font-light max-w-[560px] mx-auto mb-8">
                 Retrouvez votre résultat avec votre numéro de PV ou votre école d&apos;origine.

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EXAMEN_LABELS } from "@/lib/examens";
 
@@ -34,70 +35,131 @@ export function Filters({
   currentProfil,
   currentExamen,
   currentOrigine,
+  currentCentre,
+  currentRegion,
 }: {
   query: string;
   currentSession?: number;
   currentProfil?: string;
   currentExamen?: string;
   currentOrigine?: string;
+  currentCentre?: string;
+  currentRegion?: string;
 }) {
   const router = useRouter();
+  const [centre, setCentre] = useState(currentCentre || "");
+  const [region, setRegion] = useState(currentRegion || "");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  const navigate = (examen: string, session: string, profil: string) => {
+  const navigate = (overrides: {
+    examen?: string;
+    session?: string;
+    profil?: string;
+    centre?: string;
+    region?: string;
+  }) => {
     const params = new URLSearchParams({ q: query });
+    const examen = overrides.examen ?? currentExamen ?? "";
+    const session = overrides.session ?? currentSession?.toString() ?? "";
+    const profil = overrides.profil ?? currentProfil ?? "";
+    const centreVal = overrides.centre ?? centre;
+    const regionVal = overrides.region ?? region;
+
     if (examen) params.set("examen", examen);
     if (session) params.set("session", session);
     if (profil) params.set("profil", profil);
     if (currentOrigine) params.set("origine", currentOrigine);
+    if (centreVal) params.set("centre", centreVal);
+    if (regionVal) params.set("region", regionVal);
     router.push(`/recherche?${params.toString()}`);
   };
 
+  const handleTextChange = (field: "centre" | "region", value: string) => {
+    if (field === "centre") setCentre(value);
+    else setRegion(value);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      navigate(field === "centre" ? { centre: value } : { region: value });
+    }, 500);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
+
+  const hasActiveFilters =
+    currentSession || currentProfil || currentExamen || currentOrigine || currentCentre || currentRegion;
+
   return (
-    <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-      <select
-        value={currentExamen || ""}
-        onChange={(e) => navigate(e.target.value, currentSession?.toString() || "", currentProfil || "")}
-        className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
-      >
-        {EXAMENS.map((ex) => (
-          <option key={ex.value} value={ex.value}>
-            {ex.label}
-          </option>
-        ))}
-      </select>
-
-      <select
-        value={currentSession?.toString() || ""}
-        onChange={(e) => navigate(currentExamen || "", e.target.value, currentProfil || "")}
-        className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
-      >
-        {SESSIONS.map((s) => (
-          <option key={s.value} value={s.value}>
-            {s.label}
-          </option>
-        ))}
-      </select>
-
-      <select
-        value={currentProfil || ""}
-        onChange={(e) => navigate(currentExamen || "", currentSession?.toString() || "", e.target.value)}
-        className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
-      >
-        {PROFILS.map((p) => (
-          <option key={p.value} value={p.value}>
-            {p.label}
-          </option>
-        ))}
-      </select>
-
-      {(currentSession || currentProfil || currentExamen || currentOrigine) && (
-        <button
-          onClick={() => router.push(`/recherche?q=${encodeURIComponent(query)}`)}
-          className="text-sm text-text-tertiary hover:text-text-primary transition-colors underline"
+    <div className="flex flex-col items-center gap-3 mb-8">
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <select
+          value={currentExamen || ""}
+          onChange={(e) => navigate({ examen: e.target.value })}
+          className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
         >
-          Réinitialiser les filtres
-        </button>
-      )}
+          {EXAMENS.map((ex) => (
+            <option key={ex.value} value={ex.value}>
+              {ex.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={currentSession?.toString() || ""}
+          onChange={(e) => navigate({ session: e.target.value })}
+          className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
+        >
+          {SESSIONS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={currentProfil || ""}
+          onChange={(e) => navigate({ profil: e.target.value })}
+          className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
+        >
+          {PROFILS.map((p) => (
+            <option key={p.value} value={p.value}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+
+        {hasActiveFilters && (
+          <button
+            onClick={() => router.push(`/recherche?q=${encodeURIComponent(query)}`)}
+            className="text-sm text-text-tertiary hover:text-text-primary transition-colors underline"
+          >
+            Réinitialiser les filtres
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap items-center justify-center gap-3">
+        <input
+          type="text"
+          value={centre}
+          onChange={(e) => handleTextChange("centre", e.target.value)}
+          placeholder="Centre d'examen"
+          className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary placeholder:text-text-tertiary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
+        />
+        {currentExamen !== "BAC" && (
+          <input
+            type="text"
+            value={region}
+            onChange={(e) => handleTextChange("region", e.target.value)}
+            placeholder="Région (BEPC/CEE)"
+            className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary placeholder:text-text-tertiary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
+          />
+        )}
+      </div>
     </div>
   );
 }

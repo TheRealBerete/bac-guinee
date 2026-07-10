@@ -23,13 +23,18 @@ async def search(
     examen: str | None = Query(None, pattern=r"^(BAC|BEPC|CEE)$"),
     mention: str | None = Query(None, pattern=r"^(BIEN|ABIEN|PASSABLE|TB|EXCELLENT|TBIEN)$"),
     origine: str | None = Query(None, max_length=100, description="École/établissement d'origine (recherche partielle)"),
+    centre: str | None = Query(None, max_length=100, description="Centre d'examen (recherche partielle)"),
+    region: str | None = Query(None, max_length=100, description="Région (IRE pour BEPC, DPE pour CEE — sans objet pour le Bac)"),
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
 ):
-    if not q.strip() and not any([session, profil, examen, mention, origine]):
-        raise HTTPException(status_code=400, detail="Fournissez une recherche (q) ou au moins un filtre (session, profil, examen, mention, origine).")
+    if not q.strip() and not any([session, profil, examen, mention, origine, centre, region]):
+        raise HTTPException(status_code=400, detail="Fournissez une recherche (q) ou au moins un filtre (session, profil, examen, mention, origine, centre, region).")
 
-    results, total = autodetect_search(q, session=session, profil=profil, examen=examen, mention=mention, origine=origine, page=page, limit=limit)
+    results, total = autodetect_search(
+        q, session=session, profil=profil, examen=examen, mention=mention,
+        origine=origine, centre=centre, region=region, page=page, limit=limit,
+    )
 
     if total == 0 and is_pv_query(q):
         pv = q.strip()

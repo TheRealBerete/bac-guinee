@@ -26,18 +26,22 @@ async function Results({
   profil,
   examen,
   origine,
+  centre,
+  region,
 }: {
   query: string;
   session?: number;
   profil?: string;
   examen?: string;
   origine?: string;
+  centre?: string;
+  region?: string;
 }) {
   let data: SearchResult | null = null;
   let error = false;
 
   try {
-    data = await search({ q: query, session, profil, examen, origine, limit: 50 });
+    data = await search({ q: query, session, profil, examen, origine, centre, region, limit: 50 });
   } catch {
     error = true;
   }
@@ -59,6 +63,8 @@ async function Results({
         {data.total} résultat{data.total !== 1 ? "s" : ""}
         {data.query ? ` pour "${data.query}"` : ""}
         {origine ? ` — école : "${origine}"` : ""}
+        {centre ? ` — centre : "${centre}"` : ""}
+        {region ? ` — région : "${region}"` : ""}
       </p>
       {data.results.length === 0 && examen && !EXAMEN_DISPONIBLE[examen] ? (
         <div className="text-center py-12">
@@ -88,7 +94,15 @@ async function Results({
 export default async function RecherchePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; session?: string; profil?: string; examen?: string; origine?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    session?: string;
+    profil?: string;
+    examen?: string;
+    origine?: string;
+    centre?: string;
+    region?: string;
+  }>;
 }) {
   const params = await searchParams;
   const query = params.q || "";
@@ -96,6 +110,8 @@ export default async function RecherchePage({
   const profil = params.profil || undefined;
   const examen = params.examen || undefined;
   const origine = params.origine || undefined;
+  const centre = params.centre || undefined;
+  const region = params.region || undefined;
 
   return (
     <section className="pt-[150px] pb-[80px]">
@@ -104,11 +120,19 @@ export default async function RecherchePage({
           <SearchBar />
         </div>
 
-        {query || session || profil || examen || origine ? (
+        {query || session || profil || examen || origine || centre || region ? (
           <>
-            <Filters query={query} currentSession={session} currentProfil={profil} currentExamen={examen} currentOrigine={origine} />
+            <Filters
+              query={query}
+              currentSession={session}
+              currentProfil={profil}
+              currentExamen={examen}
+              currentOrigine={origine}
+              currentCentre={centre}
+              currentRegion={region}
+            />
             <Suspense fallback={<LoadingSkeleton />}>
-              <Results query={query} session={session} profil={profil} examen={examen} origine={origine} />
+              <Results query={query} session={session} profil={profil} examen={examen} origine={origine} centre={centre} region={region} />
             </Suspense>
           </>
         ) : (

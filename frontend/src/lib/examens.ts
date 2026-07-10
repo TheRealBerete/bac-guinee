@@ -13,3 +13,15 @@ export const EXAMEN_DISPONIBLE: Record<string, boolean> = {
   BEPC: false,
   CEE: true,
 };
+
+// Quels examens ont des données pour la session en cours (2026) spécifiquement —
+// distinct de EXAMEN_DISPONIBLE (qui reflète "a des données, toutes années
+// confondues"). Piloté par le formulaire "Résultats 2026" du hero : seuls les
+// examens listés ici y apparaissent comme sélectionnables. À mettre à jour à la
+// main après chaque scraping réussi d'une session 2026 (même geste que
+// EXAMEN_DISPONIBLE — pas de détection automatique pour l'instant).
+export const EXAMEN_2026_DISPONIBLE: Record<string, boolean> = {
+  BAC: false,
+  BEPC: false,
+  CEE: true,
+};

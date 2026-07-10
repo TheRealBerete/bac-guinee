@@ -17,6 +17,7 @@ class CandidateOut(BaseModel):
     profil: str
     profil_nom: Optional[str] = None
     examen: str = "BAC"
+    region: Optional[str] = None
     source: str = "guineematin"
 
     model_config = {"from_attributes": True}
