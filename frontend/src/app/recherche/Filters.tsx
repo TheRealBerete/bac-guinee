@@ -1,6 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { EXAMEN_LABELS } from "@/lib/examens";
+
+const EXAMENS = [
+  { value: "", label: "Tous les examens" },
+  ...Object.entries(EXAMEN_LABELS).map(([value, label]) => ({ value, label })),
+];
 
 const SESSIONS = [
   { value: "", label: "Toutes les sessions" },
@@ -26,25 +32,43 @@ export function Filters({
   query,
   currentSession,
   currentProfil,
+  currentExamen,
+  currentOrigine,
 }: {
   query: string;
   currentSession?: number;
   currentProfil?: string;
+  currentExamen?: string;
+  currentOrigine?: string;
 }) {
   const router = useRouter();
 
-  const navigate = (session: string, profil: string) => {
+  const navigate = (examen: string, session: string, profil: string) => {
     const params = new URLSearchParams({ q: query });
+    if (examen) params.set("examen", examen);
     if (session) params.set("session", session);
     if (profil) params.set("profil", profil);
+    if (currentOrigine) params.set("origine", currentOrigine);
     router.push(`/recherche?${params.toString()}`);
   };
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
       <select
+        value={currentExamen || ""}
+        onChange={(e) => navigate(e.target.value, currentSession?.toString() || "", currentProfil || "")}
+        className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
+      >
+        {EXAMENS.map((ex) => (
+          <option key={ex.value} value={ex.value}>
+            {ex.label}
+          </option>
+        ))}
+      </select>
+
+      <select
         value={currentSession?.toString() || ""}
-        onChange={(e) => navigate(e.target.value, currentProfil || "")}
+        onChange={(e) => navigate(currentExamen || "", e.target.value, currentProfil || "")}
         className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
       >
         {SESSIONS.map((s) => (
@@ -56,7 +80,7 @@ export function Filters({
 
       <select
         value={currentProfil || ""}
-        onChange={(e) => navigate(currentSession?.toString() || "", e.target.value)}
+        onChange={(e) => navigate(currentExamen || "", currentSession?.toString() || "", e.target.value)}
         className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
       >
         {PROFILS.map((p) => (
@@ -66,7 +90,7 @@ export function Filters({
         ))}
       </select>
 
-      {(currentSession || currentProfil) && (
+      {(currentSession || currentProfil || currentExamen || currentOrigine) && (
         <button
           onClick={() => router.push(`/recherche?q=${encodeURIComponent(query)}`)}
           className="text-sm text-text-tertiary hover:text-text-primary transition-colors underline"

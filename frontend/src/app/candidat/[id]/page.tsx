@@ -1,14 +1,35 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCandidate } from "@/lib/api";
 import { ShareButton } from "@/components/ShareButton";
+import { MENTION_FALLBACK, MENTION_STYLES } from "@/lib/badges";
 
-const MENTION_COLORS: Record<string, string> = {
-  TB: "bg-yellow-100 text-yellow-800",
-  BIEN: "bg-green-100 text-green-800",
-  ABIEN: "bg-blue-100 text-blue-800",
-  PASSABLE: "bg-gray-100 text-gray-700",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const numId = parseInt(id, 10);
+  if (isNaN(numId)) return {};
+
+  try {
+    const candidate = await getCandidate(numId);
+    const title = `${candidate.nom_complet} — Résultat Bac ${candidate.session} ${candidate.profil}`;
+    const description = `Résultat du Baccalauréat ${candidate.session} pour ${candidate.nom_complet} (PV ${candidate.pv}), profil ${
+      candidate.profil_nom || candidate.profil
+    }${candidate.mention ? `, mention ${candidate.mention}` : ""}.`;
+
+    return {
+      title,
+      description,
+      openGraph: { title, description },
+    };
+  } catch {
+    return {};
+  }
+}
 
 export default async function CandidatePage({
   params,
@@ -36,14 +57,14 @@ export default async function CandidatePage({
           Retour à la recherche
         </Link>
 
-        <div className="bg-white border border-border-soft rounded-[20px] p-8 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.04)]">
+        <div className="card p-8">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-semibold">{candidate.nom_complet}</h1>
               <p className="text-text-tertiary mt-1">PV {candidate.pv}</p>
             </div>
             {candidate.mention && (
-              <span className={`shrink-0 text-sm font-semibold px-3 py-1.5 rounded-full ${MENTION_COLORS[candidate.mention] || "bg-gray-100 text-gray-600"}`}>
+              <span className={`shrink-0 text-sm font-semibold px-3 py-1.5 rounded-full ${MENTION_STYLES[candidate.mention] || MENTION_FALLBACK}`}>
                 {candidate.mention}
               </span>
             )}

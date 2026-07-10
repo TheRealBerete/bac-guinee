@@ -4,6 +4,7 @@ import { CandidateCard } from "@/components/CandidateCard";
 import { Filters } from "./Filters";
 import type { SearchResult } from "@/lib/api";
 import { search } from "@/lib/api";
+import { EXAMEN_LABELS } from "@/lib/examens";
 
 function LoadingSkeleton() {
   return (
@@ -19,12 +20,24 @@ function LoadingSkeleton() {
   );
 }
 
-async function Results({ query, session, profil }: { query: string; session?: number; profil?: string }) {
+async function Results({
+  query,
+  session,
+  profil,
+  examen,
+  origine,
+}: {
+  query: string;
+  session?: number;
+  profil?: string;
+  examen?: string;
+  origine?: string;
+}) {
   let data: SearchResult | null = null;
   let error = false;
 
   try {
-    data = await search({ q: query, session, profil, limit: 50 });
+    data = await search({ q: query, session, profil, examen, origine, limit: 50 });
   } catch {
     error = true;
   }
@@ -43,9 +56,20 @@ async function Results({ query, session, profil }: { query: string; session?: nu
   return (
     <div className="max-w-[800px] mx-auto">
       <p className="text-text-secondary mb-6 text-center">
-        {data.total} résultat{data.total !== 1 ? "s" : ""} pour &quot;{data.query}&quot;
+        {data.total} résultat{data.total !== 1 ? "s" : ""}
+        {data.query ? ` pour "${data.query}"` : ""}
+        {origine ? ` — école : "${origine}"` : ""}
       </p>
-      {data.results.length === 0 ? (
+      {data.results.length === 0 && examen && examen !== "BAC" ? (
+        <div className="text-center py-12">
+          <p className="text-text-secondary text-lg">
+            Les résultats du {EXAMEN_LABELS[examen] || examen} ne sont pas encore disponibles sur cette plateforme.
+          </p>
+          <p className="text-text-tertiary mt-2">
+            Seul le Baccalauréat est couvert pour l&apos;instant — retirez ce filtre ou revenez plus tard.
+          </p>
+        </div>
+      ) : data.results.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-text-secondary text-lg">Aucun résultat trouvé.</p>
           <p className="text-text-tertiary mt-2">Vérifiez l&apos;orthographe ou essayez un autre terme.</p>
@@ -64,12 +88,14 @@ async function Results({ query, session, profil }: { query: string; session?: nu
 export default async function RecherchePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; session?: string; profil?: string }>;
+  searchParams: Promise<{ q?: string; session?: string; profil?: string; examen?: string; origine?: string }>;
 }) {
   const params = await searchParams;
   const query = params.q || "";
   const session = params.session ? parseInt(params.session, 10) : undefined;
   const profil = params.profil || undefined;
+  const examen = params.examen || undefined;
+  const origine = params.origine || undefined;
 
   return (
     <section className="pt-[150px] pb-[80px]">
@@ -78,11 +104,11 @@ export default async function RecherchePage({
           <SearchBar />
         </div>
 
-        {query ? (
+        {query || session || profil || examen || origine ? (
           <>
-            <Filters query={query} currentSession={session} currentProfil={profil} />
+            <Filters query={query} currentSession={session} currentProfil={profil} currentExamen={examen} currentOrigine={origine} />
             <Suspense fallback={<LoadingSkeleton />}>
-              <Results query={query} session={session} profil={profil} />
+              <Results query={query} session={session} profil={profil} examen={examen} origine={origine} />
             </Suspense>
           </>
         ) : (

@@ -1,13 +1,30 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLycee } from "@/lib/api";
+import { MENTION_FALLBACK, MENTION_STYLES, PROFIL_FALLBACK, PROFIL_STYLES } from "@/lib/badges";
 
-const MENTION_COLORS: Record<string, string> = {
-  TB: "bg-yellow-100 text-yellow-800",
-  BIEN: "bg-green-100 text-green-800",
-  ABIEN: "bg-blue-100 text-blue-800",
-  PASSABLE: "bg-gray-100 text-gray-700",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ nom: string }>;
+}): Promise<Metadata> {
+  const { nom } = await params;
+
+  try {
+    const stats = await getLycee(decodeURIComponent(nom));
+    const title = `Résultats Bac — Lycée ${stats.lycee} — ${stats.total_admis} admis`;
+    const description = `Statistiques du Baccalauréat pour ${stats.lycee} : ${stats.total_admis} candidats admis, résultats par session et par mention.`;
+
+    return {
+      title,
+      description,
+      openGraph: { title, description },
+    };
+  } catch {
+    return {};
+  }
+}
 
 export default async function LyceePage({
   params,
@@ -33,7 +50,7 @@ export default async function LyceePage({
           Retour
         </Link>
 
-        <div className="bg-white border border-border-soft rounded-[20px] p-8 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.04)] mb-8">
+        <div className="card p-8 mb-8">
           <h1 className="text-2xl font-semibold mb-2">{stats.lycee}</h1>
           <p className="text-text-secondary">{stats.total_admis} candidat{stats.total_admis > 1 ? "s" : ""} admis</p>
 
@@ -79,11 +96,11 @@ export default async function LyceePage({
                   </div>
                   <div className="shrink-0 flex items-center gap-2">
                     {c.mention && (
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${MENTION_COLORS[c.mention] || "bg-gray-100 text-gray-600"}`}>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${MENTION_STYLES[c.mention] || MENTION_FALLBACK}`}>
                         {c.mention}
                       </span>
                     )}
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">{c.profil}</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${PROFIL_STYLES[c.profil] || PROFIL_FALLBACK}`}>{c.profil}</span>
                     {c.rang && c.rang > 0 && (
                       <span className="text-text-tertiary text-xs">{c.rang}<sup>e</sup></span>
                     )}

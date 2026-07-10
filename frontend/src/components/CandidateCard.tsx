@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { MENTION_FALLBACK, MENTION_STYLES, PROFIL_FALLBACK, PROFIL_STYLES } from "@/lib/badges";
 
 interface Candidate {
   id: number;
@@ -15,21 +16,6 @@ interface Candidate {
   centre: string | null;
   source: string;
 }
-
-const MENTION_COLORS: Record<string, string> = {
-  TB: "bg-yellow-100 text-yellow-800",
-  BIEN: "bg-green-100 text-green-800",
-  ABIEN: "bg-blue-100 text-blue-800",
-  PASSABLE: "bg-gray-100 text-gray-700",
-};
-
-const PROFIL_COLORS: Record<string, string> = {
-  SS: "bg-purple-100 text-purple-700",
-  SM: "bg-orange-100 text-orange-700",
-  SE: "bg-teal-100 text-teal-700",
-  "SS-FA": "bg-purple-100 text-purple-700",
-  "SE-FA": "bg-teal-100 text-teal-700",
-};
 
 export function CandidateCard({ candidate }: { candidate: Candidate }) {
   return (
@@ -49,11 +35,11 @@ export function CandidateCard({ candidate }: { candidate: Candidate }) {
         </div>
         <div className="shrink-0 flex flex-col items-end gap-2">
           {candidate.mention && (
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${MENTION_COLORS[candidate.mention] || "bg-gray-100 text-gray-600"}`}>
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${MENTION_STYLES[candidate.mention] || MENTION_FALLBACK}`}>
               {candidate.mention}
             </span>
           )}
-          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${PROFIL_COLORS[candidate.profil] || "bg-gray-100 text-gray-600"}`}>
+          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${PROFIL_STYLES[candidate.profil] || PROFIL_FALLBACK}`}>
             {candidate.profil}
           </span>
         </div>

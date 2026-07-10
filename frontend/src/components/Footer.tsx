@@ -19,7 +19,9 @@ export function Footer() {
             <h4 className="text-base font-semibold mb-[18px]">Navigation</h4>
             <ul className="grid gap-3">
               <li><Link href="/" className="text-text-secondary hover:text-text-primary transition-colors">Recherche</Link></li>
-              <li><Link href="/#stats" className="text-text-secondary hover:text-text-primary transition-colors">Statistiques</Link></li>
+              <li><Link href="/archives" className="text-text-secondary hover:text-text-primary transition-colors">Archives</Link></li>
+              <li><Link href="/stats" className="text-text-secondary hover:text-text-primary transition-colors">Statistiques</Link></li>
+              <li><Link href="/etablissements" className="text-text-secondary hover:text-text-primary transition-colors">Établissements</Link></li>
               <li><Link href="/contact" className="text-text-secondary hover:text-text-primary transition-colors">À propos</Link></li>
             </ul>
           </div>
@@ -33,8 +35,17 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between py-6 border-t border-border-soft text-text-tertiary text-sm flex-wrap gap-3">
-          <span>© 2026 Bac Guinée. Données issues de sources publiques.</span>
+        <div className="py-6 border-t border-border-soft text-text-tertiary text-sm">
+          <p className="flex items-center justify-between flex-wrap gap-3">
+            <span>© 2026 Bac Guinée. Données issues de sources publiques.</span>
+          </p>
+          <p className="mt-2">
+            Plateforme indépendante, non affiliée au Ministère de l&apos;Éducation ni à gtsco-kag.org — voir{" "}
+            <Link href="/contact" className="underline hover:text-text-secondary transition-colors">
+              nos sources
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </footer>

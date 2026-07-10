@@ -9,7 +9,7 @@ export default function ContactPage() {
         </ScrollReveal>
 
         <ScrollReveal delay={60} className="space-y-6">
-          <div className="bg-white border border-border-soft rounded-[20px] p-8 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.04)]">
+          <div className="card p-8">
             <h2 className="text-lg font-semibold mb-3">Le projet</h2>
             <p className="text-text-secondary leading-relaxed">
               Bac Guinée est une plateforme de consultation des résultats du Baccalauréat unique guinéen.
@@ -18,7 +18,7 @@ export default function ContactPage() {
             </p>
           </div>
 
-          <div className="bg-white border border-border-soft rounded-[20px] p-8 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.04)]">
+          <div className="card p-8">
             <h2 className="text-lg font-semibold mb-3">Sources</h2>
             <ul className="text-text-secondary space-y-2">
               <li className="flex items-center gap-2">
@@ -32,7 +32,7 @@ export default function ContactPage() {
             </ul>
           </div>
 
-          <div className="bg-white border border-border-soft rounded-[20px] p-8 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.04)]">
+          <div className="card p-8">
             <h2 className="text-lg font-semibold mb-3">Les profils du Bac</h2>
             <div className="grid grid-cols-2 gap-2 text-sm text-text-secondary">
               <span>SS — Sciences Sociales</span>
@@ -40,6 +40,43 @@ export default function ContactPage() {
               <span>SM — Sciences Mathématiques</span>
               <span>SE — Sciences Expérimentales</span>
               <span>SE-FA — Sciences Expérimentales Franco-Arabe</span>
+            </div>
+          </div>
+
+          <div className="card p-8">
+            <h2 className="text-lg font-semibold mb-3">Questions fréquentes</h2>
+            <div className="space-y-5 text-sm">
+              <div>
+                <h3 className="font-medium text-text-primary mb-1">Qu&apos;est-ce qu&apos;un PV ?</h3>
+                <p className="text-text-secondary leading-relaxed">
+                  Le PV (procès-verbal) est le numéro unique attribué à chaque candidat pour une session
+                  donnée. C&apos;est le moyen le plus fiable de retrouver un résultat précis.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-text-primary mb-1">Qu&apos;est-ce qu&apos;un profil ?</h3>
+                <p className="text-text-secondary leading-relaxed">
+                  Le profil désigne la filière suivie par le candidat (SS, SM, SE, ou leurs variantes
+                  Franco-Arabe). Il conditionne les épreuves passées et le calcul de la mention.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-text-primary mb-1">Qu&apos;est-ce qu&apos;une mention ?</h3>
+                <p className="text-text-secondary leading-relaxed">
+                  La mention (Passable, Assez Bien, Bien, Très Bien) reflète le niveau de la moyenne
+                  obtenue par le candidat admis.
+                </p>
+              </div>
+              <div>
+                <h3 className="font-medium text-text-primary mb-1">
+                  Pourquoi le BEPC et le CEE ne sont-ils pas encore disponibles ?
+                </h3>
+                <p className="text-text-secondary leading-relaxed">
+                  La plateforme est conçue pour accueillir plusieurs examens guinéens, mais seul le
+                  Baccalauréat dispose aujourd&apos;hui d&apos;une source de données (PDFs guineematin.com
+                  et API officielle). Le BEPC et le CEE seront ajoutés dès qu&apos;une source fiable existera.
+                </p>
+              </div>
             </div>
           </div>
         </ScrollReveal>

@@ -33,6 +33,44 @@
   --radius-card: 20px;
 }
 
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-reverse {
+  from {
+    transform: translateX(-50%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 50s linear infinite;
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse 65s linear infinite;
+}
+
+@layer components {
+  /* Single source of truth for the white bordered card used across
+     candidate/lycee/contact pages — was copy-pasted as an inline Tailwind
+     arbitrary-value string in each file and had started to drift. */
+  .card {
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-border-soft);
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }
