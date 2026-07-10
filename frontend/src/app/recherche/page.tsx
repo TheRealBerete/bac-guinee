@@ -4,7 +4,7 @@ import { CandidateCard } from "@/components/CandidateCard";
 import { Filters } from "./Filters";
 import type { SearchResult } from "@/lib/api";
 import { search } from "@/lib/api";
-import { EXAMEN_LABELS } from "@/lib/examens";
+import { EXAMEN_DISPONIBLE, EXAMEN_LABELS } from "@/lib/examens";
 
 function LoadingSkeleton() {
   return (
@@ -60,13 +60,13 @@ async function Results({
         {data.query ? ` pour "${data.query}"` : ""}
         {origine ? ` — école : "${origine}"` : ""}
       </p>
-      {data.results.length === 0 && examen && examen !== "BAC" ? (
+      {data.results.length === 0 && examen && !EXAMEN_DISPONIBLE[examen] ? (
         <div className="text-center py-12">
           <p className="text-text-secondary text-lg">
             Les résultats du {EXAMEN_LABELS[examen] || examen} ne sont pas encore disponibles sur cette plateforme.
           </p>
           <p className="text-text-tertiary mt-2">
-            Seul le Baccalauréat est couvert pour l&apos;instant — retirez ce filtre ou revenez plus tard.
+            Retirez ce filtre ou revenez plus tard, une fois les résultats publiés.
           </p>
         </div>
       ) : data.results.length === 0 ? (
