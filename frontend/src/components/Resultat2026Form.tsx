@@ -11,17 +11,21 @@ const EXAMENS_2026 = Object.entries(EXAMEN_2026_DISPONIBLE)
 export function Resultat2026Form() {
   const [examen, setExamen] = useState(EXAMENS_2026[0] || "");
   const [pv, setPv] = useState("");
-  const [ecole, setEcole] = useState("");
+  // BEPC/CEE n'ont pas de filière, mais ont une région (IRE/DPE) qui sert de
+  // repère équivalent à l'école pour le Bac — un seul champ texte dont le
+  // sens change selon l'examen sélectionné, plutôt que deux champs séparés.
+  const [secondField, setSecondField] = useState("");
   const router = useRouter();
+  const isRegionExam = examen === "BEPC" || examen === "CEE";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pv.trim() && !ecole.trim()) return;
+    if (!pv.trim() && !secondField.trim()) return;
 
     const params = new URLSearchParams({ session: "2026" });
     if (examen) params.set("examen", examen);
     if (pv.trim()) params.set("q", pv.trim());
-    if (ecole.trim()) params.set("origine", ecole.trim());
+    if (secondField.trim()) params.set(isRegionExam ? "region" : "origine", secondField.trim());
     router.push(`/recherche?${params.toString()}`);
   };
 
@@ -32,7 +36,10 @@ export function Resultat2026Form() {
     >
       <select
         value={examen}
-        onChange={(e) => setExamen(e.target.value)}
+        onChange={(e) => {
+          setExamen(e.target.value);
+          setSecondField("");
+        }}
         className="w-full mb-3 bg-bg-secondary border border-border-soft rounded-xl px-4 py-3 text-text-primary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
       >
         {EXAMENS_2026.map((code) => (
@@ -52,9 +59,9 @@ export function Resultat2026Form() {
         />
         <input
           type="text"
-          value={ecole}
-          onChange={(e) => setEcole(e.target.value)}
-          placeholder="École d'origine"
+          value={secondField}
+          onChange={(e) => setSecondField(e.target.value)}
+          placeholder={isRegionExam ? "Région" : "École d'origine"}
           className="bg-bg-secondary border border-border-soft rounded-xl px-4 py-3 text-text-primary placeholder:text-text-tertiary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
         />
       </div>
@@ -65,7 +72,7 @@ export function Resultat2026Form() {
         Voir les résultats 2026
       </button>
       <p className="text-center text-text-tertiary text-sm mt-3">
-        Renseignez le PV, l&apos;école, ou les deux
+        Le PV seul suffit, mais renseigner {isRegionExam ? "la région" : "l'école"} rend le résultat plus précis.
       </p>
     </form>
   );

@@ -77,7 +77,10 @@ export function Filters({
     const params = new URLSearchParams({ q: query });
     const examen = overrides.examen ?? currentExamen ?? "";
     const session = overrides.session ?? currentSession?.toString() ?? "";
-    const profil = overrides.profil ?? currentProfil ?? "";
+    // Le profil (filière) n'existe que pour le Bac — BEPC/CEE sont toujours
+    // GENERAL. Comme pour région/Bac plus bas, on le retire dès qu'on bascule
+    // sur un examen qui n'en a pas, plutôt que de le laisser traîner invisible.
+    const profil = examen === "BEPC" || examen === "CEE" ? "" : overrides.profil ?? currentProfil ?? "";
     const centreVal = overrides.centre ?? centre;
     // Région n'a pas de sens pour le Bac (pas de champ region en base) — on la
     // retire dès qu'on bascule sur cet examen plutôt que de la laisser
@@ -139,17 +142,19 @@ export function Filters({
           ))}
         </select>
 
-        <select
-          value={currentProfil || ""}
-          onChange={(e) => navigate({ profil: e.target.value })}
-          className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
-        >
-          {PROFILS.map((p) => (
-            <option key={p.value} value={p.value}>
-              {p.label}
-            </option>
-          ))}
-        </select>
+        {currentExamen !== "BEPC" && currentExamen !== "CEE" && (
+          <select
+            value={currentProfil || ""}
+            onChange={(e) => navigate({ profil: e.target.value })}
+            className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
+          >
+            {PROFILS.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+        )}
 
         {hasActiveFilters && (
           <button
@@ -177,11 +182,15 @@ export function Filters({
             type="text"
             value={region}
             onChange={(e) => handleTextChange("region", e.target.value)}
-            placeholder="Région (BEPC/CEE)"
+            placeholder="Commune / région (BEPC, CEE)"
             className="bg-white border border-border-soft rounded-xl px-4 py-2.5 text-sm text-text-secondary placeholder:text-text-tertiary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
           />
         )}
       </div>
+
+      <p className="text-xs text-text-tertiary text-center max-w-[480px]">
+        Aucun champ n&apos;est obligatoire, mais plus vous en renseignez, plus le résultat est précis.
+      </p>
     </div>
   );
 }

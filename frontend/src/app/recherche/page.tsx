@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { SearchBar } from "@/components/SearchBar";
 import { CandidateCard } from "@/components/CandidateCard";
 import { Filters } from "./Filters";
@@ -56,6 +57,12 @@ async function Results({
   }
 
   if (!data) return null;
+
+  // A single unambiguous match — go straight to the candidate's own page
+  // rather than showing a results list with just one card in it.
+  if (data.results.length === 1) {
+    redirect(`/candidat/${data.results[0].id}`);
+  }
 
   return (
     <div className="max-w-[800px] mx-auto">
