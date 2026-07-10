@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCandidate } from "@/lib/api";
-import { ShareButton } from "@/components/ShareButton";
+import { ShareActions } from "@/components/ShareActions";
 import { MENTION_FALLBACK, MENTION_STYLES } from "@/lib/badges";
 
 export async function generateMetadata({
@@ -20,11 +20,22 @@ export async function generateMetadata({
     const description = `Résultat du Baccalauréat ${candidate.session} pour ${candidate.nom_complet} (PV ${candidate.pv}), profil ${
       candidate.profil_nom || candidate.profil
     }${candidate.mention ? `, mention ${candidate.mention}` : ""}.`;
+    const imageUrl = `/candidat/${numId}/image`;
 
     return {
       title,
       description,
-      openGraph: { title, description },
+      openGraph: {
+        title,
+        description,
+        images: [{ url: imageUrl, width: 1200, height: 630 }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [imageUrl],
+      },
     };
   } catch {
     return {};
@@ -58,14 +69,20 @@ export default async function CandidatePage({
         </Link>
 
         <div className="card p-8">
-          <div className="flex items-start justify-between gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl font-semibold">{candidate.nom_complet}</h1>
-              <p className="text-text-tertiary mt-1">PV {candidate.pv}</p>
+          <div className="flex flex-col items-center text-center mb-8 pb-8 border-b border-border-soft">
+            <div className="w-14 h-14 rounded-2xl bg-primary-dark flex items-center justify-center mb-4">
+              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
             </div>
+            <p className="text-text-tertiary text-sm font-semibold tracking-wide uppercase mb-2">
+              Résultat officiel confirmé
+            </p>
+            <h1 className="text-3xl font-semibold">{candidate.nom_complet}</h1>
+            <p className="text-text-tertiary mt-1">PV {candidate.pv} · Session {candidate.session}</p>
             {candidate.mention && (
-              <span className={`shrink-0 text-sm font-semibold px-3 py-1.5 rounded-full ${MENTION_STYLES[candidate.mention] || MENTION_FALLBACK}`}>
-                {candidate.mention}
+              <span className={`mt-4 text-base font-semibold px-4 py-2 rounded-full ${MENTION_STYLES[candidate.mention] || MENTION_FALLBACK}`}>
+                Mention {candidate.mention}
               </span>
             )}
           </div>
@@ -89,8 +106,12 @@ export default async function CandidatePage({
             <Info label="Source" value={candidate.source === "guineematin" ? "guineematin.com (PDF)" : "mon-portail.gtsco-kag.org (API)"} />
           </div>
 
-          <div className="mt-6 pt-6 border-t border-border-soft flex justify-center">
-            <ShareButton text={`Résultat Bac ${candidate.session} : ${candidate.nom_complet} (${candidate.profil})`} />
+          <div className="mt-6 pt-6 border-t border-border-soft">
+            <ShareActions
+              text={`J'ai décroché mon Bac ${candidate.session} ! Résultat de ${candidate.nom_complet} :`}
+              imageUrl={`/candidat/${candidate.id}/image`}
+              fileName={`resultat-bac-${candidate.nom_complet.trim().toLowerCase().replace(/\s+/g, "-")}.png`}
+            />
           </div>
         </div>
       </div>
