@@ -175,9 +175,9 @@ CREATE TABLE candidats (
     origine     TEXT,
     mention     TEXT,
     session     INTEGER NOT NULL,
-    profil      TEXT NOT NULL,            -- "SS", "SM", "SE", "SS-FA", "SE-FA"
+    profil      TEXT NOT NULL,            -- "SS", "SM", "SE", "SS-FA", "SE-FA", ou "GENERAL" (BEPC/CEE, pas de filière)
     profil_nom  TEXT,                     -- "Sciences Sociales", etc.
-    examen      TEXT DEFAULT 'Bac',
+    examen      TEXT DEFAULT 'BAC',        -- "BAC", "BEPC", "CEE"
     source      TEXT DEFAULT 'guineematin',
     created_at  TEXT DEFAULT (datetime('now')),
     updated_at  TEXT DEFAULT (datetime('now'))
@@ -191,6 +191,10 @@ CREATE INDEX idx_candidats_profil ON candidats (profil);
 CREATE INDEX idx_candidats_session_profil ON candidats (session, profil);
 CREATE INDEX idx_candidats_origine_session ON candidats (origine, session);
 ```
+
+## Multi-examens (BAC / BEPC / CEE)
+
+Le schéma et l'API sont préparés pour trois types d'examen (`examen` = `BAC`/`BEPC`/`CEE`), mais **seul le Bac a des données réelles aujourd'hui** — aucun scraper ni API n'existe pour le BEPC ou le CEE. Le BEPC et le CEE n'ont pas de filière (pas d'équivalent SS/SM/SE), donc si des données arrivent un jour, elles doivent utiliser `profil = 'GENERAL'` (`profil_nom = "Tronc commun"`) plutôt qu'un des codes de filière du Bac, pour respecter la contrainte `profil NOT NULL`. Le frontend expose déjà un sélecteur d'examen dans les filtres de recherche (`lib/examens.ts` définit quels examens ont réellement des données) et affiche un message dédié "pas encore disponible" plutôt qu'un simple "aucun résultat" quand on filtre sur BEPC/CEE.
 
 ## Search behavior
 

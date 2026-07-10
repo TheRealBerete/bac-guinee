@@ -22,7 +22,8 @@ def fuzzy_score(candidate_text: str, query_norm: str) -> float:
 
 
 def search_by_pv(query: str, session: int | None = None, profil: str | None = None,
-                 examen: str | None = None, mention: str | None = None) -> list[dict]:
+                 examen: str | None = None, mention: str | None = None,
+                 origine: str | None = None) -> list[dict]:
     db = get_db()
     params: list = [query]
     sql = "SELECT * FROM candidats WHERE pv = ?"
@@ -38,6 +39,9 @@ def search_by_pv(query: str, session: int | None = None, profil: str | None = No
     if mention:
         sql += " AND mention = ?"
         params.append(mention)
+    if origine:
+        sql += " AND origine LIKE ? COLLATE NOCASE"
+        params.append(f"%{origine}%")
     sql += " LIMIT 100"
     rows = db.execute(sql, params).fetchall()
     return [dict(r) for r in rows]
@@ -102,21 +106,63 @@ def search_by_name(
     return results, total
 
 
+def search_by_filters(
+    session: int | None = None,
+    profil: str | None = None,
+    examen: str | None = None,
+    mention: str | None = None,
+    origine: str | None = None,
+    limit: int = 20,
+    offset: int = 0,
+) -> tuple[list[dict], int]:
+    """Browse candidates by filters only, no name/PV query (e.g. archives browsing a session,
+    or the dedicated 2026 form searching by école d'origine without a PV)."""
+    db = get_db()
+    where_clauses = "1=1"
+    params: list = []
+    if session is not None:
+        where_clauses += " AND session = ?"
+        params.append(session)
+    if profil:
+        where_clauses += " AND profil = ?"
+        params.append(profil)
+    if examen:
+        where_clauses += " AND examen = ?"
+        params.append(examen)
+    if mention:
+        where_clauses += " AND mention = ?"
+        params.append(mention)
+    if origine:
+        where_clauses += " AND origine LIKE ? COLLATE NOCASE"
+        params.append(f"%{origine}%")
+
+    total = db.execute(f"SELECT COUNT(*) FROM candidats WHERE {where_clauses}", params).fetchone()[0]
+    rows = db.execute(
+        f"SELECT * FROM candidats WHERE {where_clauses} ORDER BY rang ASC LIMIT ? OFFSET ?",
+        params + [limit, offset],
+    ).fetchall()
+    return [dict(r) for r in rows], total
+
+
 def autodetect_search(
     query: str,
     session: int | None = None,
     profil: str | None = None,
     examen: str | None = None,
     mention: str | None = None,
+    origine: str | None = None,
     page: int = 1,
     limit: int = 20,
 ) -> tuple[list[dict], int]:
-    """Auto-detect query type: PV if numeric, otherwise name/school."""
+    """Auto-detect query type: PV if numeric, otherwise name/school. Empty query browses by filters only."""
     q = query.strip()
+    offset = (page - 1) * limit
+
+    if not q:
+        return search_by_filters(session, profil, examen, mention, origine, limit=limit, offset=offset)
 
     if is_pv_query(q):
-        results = search_by_pv(q, session, profil, examen, mention)
+        results = search_by_pv(q, session, profil, examen, mention, origine)
         return results, len(results)
 
-    offset = (page - 1) * limit
     return search_by_name(q, session, profil, examen, mention, limit=limit, offset=offset)

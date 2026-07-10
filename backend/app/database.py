@@ -1,8 +1,11 @@
+import logging
 import sqlite3
 import json
 import os
 import re
 from contextlib import contextmanager
+
+logger = logging.getLogger("bac_api")
 
 
 def ensure_db_path():
@@ -73,7 +76,7 @@ def init_db():
                 session     INTEGER NOT NULL,
                 profil      TEXT NOT NULL,
                 profil_nom  TEXT,
-                examen      TEXT DEFAULT 'Bac',
+                examen      TEXT DEFAULT 'BAC',
                 source      TEXT DEFAULT 'guineematin',
                 created_at  TEXT DEFAULT (datetime('now')),
                 updated_at  TEXT DEFAULT (datetime('now'))
@@ -88,6 +91,11 @@ def init_db():
         cur.execute("CREATE INDEX IF NOT EXISTS idx_candidats_origine_session ON candidats (origine, session)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_candidats_mention ON candidats (mention)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_candidats_examen ON candidats (examen)")
+
+        # Migration idempotente : anciennes valeurs 'Bac'/'Brevet' -> codes standardisés
+        # BAC/BEPC/CEE (cohérent avec les codes de profil SS/SM/SE). No-op une fois fait.
+        cur.execute("UPDATE candidats SET examen = 'BAC' WHERE examen = 'Bac'")
+        cur.execute("UPDATE candidats SET examen = 'BEPC' WHERE examen = 'Brevet'")
 
         cur.execute("""
             CREATE TABLE IF NOT EXISTS ukag_checks (
@@ -121,10 +129,10 @@ def split_name(full_name: str) -> tuple[str | None, str]:
 def seed_database(json_path: str | None = None):
     path = json_path or SEED_DATA_PATH
     if not os.path.exists(path):
-        print(f"[seed] Data file not found: {path}, skipping seed")
+        logger.warning("Seed data file not found: %s, skipping seed", path)
         return
 
-    print(f"[seed] Loading from {path}")
+    logger.info("Loading seed data from %s", path)
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
@@ -177,7 +185,7 @@ def seed_database(json_path: str | None = None):
                     INSERT INTO candidats
                         (nom, prenom, nom_complet, pv, rang, ex, centre, origine,
                          mention, session, profil, profil_nom, examen, source)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Bac', 'guineematin')
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'BAC', 'guineematin')
                     """,
                     (
                         nom,
@@ -196,7 +204,7 @@ def seed_database(json_path: str | None = None):
                 )
                 inserted += 1
 
-    print(f"[seed] Done: {inserted} inserted, {skipped} skipped (duplicates or no PV)")
+    logger.info("Seed done: %d inserted, %d skipped (duplicates or no PV)", inserted, skipped)
 
 
 def table_exists() -> bool:
