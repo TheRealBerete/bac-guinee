@@ -22,7 +22,12 @@ USER_AGENT = (
 SEARCH_TERMS = {
     "BAC": "baccalaureat liste des admis",
     "BEPC": "BEPC liste des admis",
-    "CEE": "CEE liste des admis",
+    # guineematin titles its CEE announcement "Examen d'entree en 7eme annee",
+    # not "CEE liste des admis" — the literal exam name barely appears in that
+    # title, so a search for it alone doesn't reliably surface the article
+    # (confirmed by testing against production: it returned nothing for CEE
+    # 2026, even though the article existed).
+    "CEE": "entree 7eme annee CEE resultats admis",
 }
 
 # guineematin sometimes links both a .xlsx and a .pdf version of the same
