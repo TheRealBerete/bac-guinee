@@ -8,6 +8,7 @@ Usage:
     python -m scraper.run --examen BAC           # one exam
     python -m scraper.run --session 2025 2026    # specific session(s)
     python -m scraper.run --check-only           # just report what's published, don't ingest
+    python -m scraper.run  --s 
 """
 
 import argparse
@@ -16,7 +17,7 @@ import datetime
 from app.database import init_db, row_count
 from scraper.discover import find_results_file_url
 from scraper.ingest import insert_candidates
-from scraper.parse_bac import download_pdf, parse_bac_pdf
+from scraper.parse_pdf import download_pdf, parse_results_pdf
 from scraper.parse_xlsx import download_xlsx, parse_results_xlsx
 
 PROFIL_NOM_BY_CODE = {
@@ -26,6 +27,15 @@ PROFIL_NOM_BY_CODE = {
     "SS-FA": "Sciences Sociales Franco-Arabe",
     "SE-FA": "Sciences Expérimentales Franco-Arabe",
 }
+
+# En dessous de ce seuil, un fichier "trouvé" est presque certainement un
+# résultat partiel/régional plutôt que la liste nationale consolidée (ex: le
+# scraper a un jour ingéré un fichier BAC 2023 ne couvrant que la préfecture
+# de Koubia — 27 lignes). Mieux vaut refuser d'insérer et le signaler
+# bruyamment que d'insérer silencieusement des données incomplètes qui
+# donneraient de faux "candidat non trouvé" pour tous les autres candidats
+# de la session.
+MIN_PLAUSIBLE_ROWS = 1000
 
 
 def check_one(examen: str, session: int) -> bool:
@@ -51,9 +61,25 @@ def run_one(examen: str, session: int) -> dict:
     print(f"[{examen} {session}] Fichier trouvé : {url}")
 
     if url.lower().endswith(".pdf"):
-        rows = parse_bac_pdf(download_pdf(url))
+        rows = list(parse_results_pdf(download_pdf(url), examen=examen))
     else:
-        rows = parse_results_xlsx(download_xlsx(url), examen=examen)
+        rows = list(parse_results_xlsx(download_xlsx(url), examen=examen))
+
+    if not rows:
+        print(
+            f"[{examen} {session}] ATTENTION : 0 ligne extraite de {url} — "
+            "le parsing a probablement échoué (format de fichier inattendu). "
+            "Rien inséré, à vérifier manuellement."
+        )
+        return stats
+
+    if len(rows) < MIN_PLAUSIBLE_ROWS:
+        print(
+            f"[{examen} {session}] ATTENTION : seulement {len(rows)} ligne(s) extraite(s) de {url} — "
+            "probablement un fichier partiel/régional plutôt que la liste nationale. "
+            "Rien inséré, à vérifier manuellement."
+        )
+        return stats
 
     if examen == "BAC":
         profil_nom_for = lambda row: PROFIL_NOM_BY_CODE.get(row["profil"], row["profil"])

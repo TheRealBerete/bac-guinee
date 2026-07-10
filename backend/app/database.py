@@ -132,6 +132,8 @@ def init_db():
 def split_name(full_name: str) -> tuple[str | None, str]:
     """Split 'MOHAMED SYLLA' into prenom='MOHAMED', nom='SYLLA'."""
     parts = full_name.strip().split(None, 1)
+    if not parts:
+        return None, ""
     if len(parts) == 1:
         return None, parts[0]
     return parts[0], parts[1]
