@@ -68,3 +68,11 @@ def parse_results_pdf(pdf_bytes: bytes, examen: str):
                         "origine": _clean(origine),
                         "mention": _clean(mention),
                     }
+
+            # pdfplumber caches per-page layout computations (chars, lines,
+            # rects...) that are never freed on their own — on a several-
+            # hundred-page PDF this grows unbounded and OOM-kills the
+            # container (confirmed: RESULTATS-BEPC-2024.pdf hit the 4GB
+            # limit). Releasing each page's cache once we're done with it
+            # keeps memory flat regardless of PDF length.
+            page.flush_cache()
