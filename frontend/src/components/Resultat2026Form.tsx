@@ -30,19 +30,17 @@ export function Resultat2026Form() {
       onSubmit={handleSubmit}
       className="w-full max-w-[640px] mx-auto bg-white border-2 border-border-soft rounded-[20px] p-5 shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.04)]"
     >
-      {EXAMENS_2026.length > 1 && (
-        <select
-          value={examen}
-          onChange={(e) => setExamen(e.target.value)}
-          className="w-full mb-3 bg-bg-secondary border border-border-soft rounded-xl px-4 py-3 text-text-primary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
-        >
-          {EXAMENS_2026.map((code) => (
-            <option key={code} value={code}>
-              {EXAMEN_LABELS[code] || code}
-            </option>
-          ))}
-        </select>
-      )}
+      <select
+        value={examen}
+        onChange={(e) => setExamen(e.target.value)}
+        className="w-full mb-3 bg-bg-secondary border border-border-soft rounded-xl px-4 py-3 text-text-primary focus:outline-hidden focus:border-primary-dark transition-colors font-[family-name:var(--font-sans)]"
+      >
+        {EXAMENS_2026.map((code) => (
+          <option key={code} value={code}>
+            {EXAMEN_LABELS[code] || code}
+          </option>
+        ))}
+      </select>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <input

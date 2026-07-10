@@ -51,6 +51,18 @@ export function Filters({
   const [region, setRegion] = useState(currentRegion || "");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Local state (needed for the debounced text inputs) can drift from the
+  // URL whenever navigation happens without a full remount of this component
+  // — the Reset button, browser back/forward, or another select changing the
+  // URL directly. Re-sync it from props whenever the URL-derived values change.
+  useEffect(() => {
+    setCentre(currentCentre || "");
+  }, [currentCentre]);
+
+  useEffect(() => {
+    setRegion(currentRegion || "");
+  }, [currentRegion]);
+
   const navigate = (overrides: {
     examen?: string;
     session?: string;
@@ -58,12 +70,19 @@ export function Filters({
     centre?: string;
     region?: string;
   }) => {
+    // Cancel any pending debounced text-input navigation so it can't fire
+    // after this one and silently override it with stale values.
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
     const params = new URLSearchParams({ q: query });
     const examen = overrides.examen ?? currentExamen ?? "";
     const session = overrides.session ?? currentSession?.toString() ?? "";
     const profil = overrides.profil ?? currentProfil ?? "";
     const centreVal = overrides.centre ?? centre;
-    const regionVal = overrides.region ?? region;
+    // Région n'a pas de sens pour le Bac (pas de champ region en base) — on la
+    // retire dès qu'on bascule sur cet examen plutôt que de la laisser
+    // traîner invisible et ressurgir au prochain changement de filtre.
+    const regionVal = examen === "BAC" ? "" : overrides.region ?? region;
 
     if (examen) params.set("examen", examen);
     if (session) params.set("session", session);
@@ -134,7 +153,10 @@ export function Filters({
 
         {hasActiveFilters && (
           <button
-            onClick={() => router.push(`/recherche?q=${encodeURIComponent(query)}`)}
+            onClick={() => {
+              if (debounceRef.current) clearTimeout(debounceRef.current);
+              router.push(`/recherche?q=${encodeURIComponent(query)}`);
+            }}
             className="text-sm text-text-tertiary hover:text-text-primary transition-colors underline"
           >
             Réinitialiser les filtres
