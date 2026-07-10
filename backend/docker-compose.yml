@@ -1,0 +1,33 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - bac_data:/app/data
+    environment:
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://bac.afrovizion.com}
+      DATABASE_PATH: /app/data/bac.db
+    restart: unless-stopped
+    mem_limit: 512m
+    cpus: 1
+
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile.scraper
+    volumes:
+      - bac_data:/app/data
+    environment:
+      DATABASE_PATH: /app/data/bac.db
+    restart: unless-stopped
+    # The scraper is memory-hungry in bursts (CEE alone loads ~200k rows into
+    # memory during a bulk run — measured at 2-4GB) — capped independently so
+    # a nightly scrape never competes with the API for resources.
+    mem_limit: 4g
+    cpus: 2
+
+volumes:
+  bac_data:
