@@ -6,7 +6,7 @@ import "./globals.css";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://bac.afrovizion.com";
 const SITE_TITLE = "Bac Guinée — Résultats du Baccalauréat";
 const SITE_DESCRIPTION =
-  "Consultez les résultats du Baccalauréat guinéen par nom, PV ou établissement. Données issues de guineematin.com et mon-portail.gtsco-kag.org.";
+  "Consultez les résultats du Baccalauréat guinéen par nom, PV ou établissement.";
 const OG_IMAGE = "/illustrations/joyeux-en-famille-resultats.webp";
 
 export const metadata: Metadata = {

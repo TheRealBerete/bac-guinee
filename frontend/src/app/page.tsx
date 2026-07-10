@@ -185,8 +185,7 @@ export default function Home() {
               Consultez les archives 2020–2025
             </h2>
             <p className="text-text-secondary mb-8">
-              Retrouvez les résultats des sessions précédentes, issus des PDFs guineematin.com
-              et de l&apos;API officielle mon-portail.gtsco-kag.org.
+              Retrouvez les résultats des sessions précédentes du Baccalauréat.
             </p>
             <Link
               href="/archives"

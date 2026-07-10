@@ -14,7 +14,6 @@ interface Candidate {
   profil_nom: string | null;
   origine: string | null;
   centre: string | null;
-  source: string;
 }
 
 export function CandidateCard({ candidate }: { candidate: Candidate }) {
@@ -45,16 +44,13 @@ export function CandidateCard({ candidate }: { candidate: Candidate }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border-soft text-sm">
-        {candidate.rang !== null && candidate.rang > 0 && (
+      {candidate.rang !== null && candidate.rang > 0 && (
+        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border-soft text-sm">
           <span className="text-text-secondary">
             Rang <span className="font-semibold text-text-primary">{candidate.rang}<sup>e</sup></span>
           </span>
-        )}
-        <span className="text-text-tertiary text-xs ml-auto">
-          Source: {candidate.source === "guineematin" ? "guineematin.com" : "gtsco-kag.org"}
-        </span>
-      </div>
+        </div>
+      )}
     </Link>
   );
 }

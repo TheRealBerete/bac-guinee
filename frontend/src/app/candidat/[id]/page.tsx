@@ -103,7 +103,6 @@ export default async function CandidatePage({
             )}
             {candidate.centre && <Info label="Centre d&apos;examen" value={candidate.centre} />}
             <Info label="Examen" value={candidate.examen} />
-            <Info label="Source" value={candidate.source === "guineematin" ? "guineematin.com (PDF)" : "mon-portail.gtsco-kag.org (API)"} />
           </div>
 
           <div className="mt-6 pt-6 border-t border-border-soft">

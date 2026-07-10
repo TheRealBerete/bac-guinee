@@ -12,24 +12,9 @@ export default function ContactPage() {
           <div className="card p-8">
             <h2 className="text-lg font-semibold mb-3">Le projet</h2>
             <p className="text-text-secondary leading-relaxed">
-              Bac Guinée est une plateforme de consultation des résultats du Baccalauréat unique guinéen.
-              Elle agrège les données de deux sources publiques : les PDFs publiés par <strong>guineematin.com</strong> (2020–2022)
-              et l&apos;API officielle de <strong>mon-portail.gtsco-kag.org</strong> (2023–2026).
+              Bac Guinée est une plateforme de consultation des résultats du Baccalauréat unique guinéen,
+              avec une couverture complète des sessions 2020 à 2026.
             </p>
-          </div>
-
-          <div className="card p-8">
-            <h2 className="text-lg font-semibold mb-3">Sources</h2>
-            <ul className="text-text-secondary space-y-2">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-dark shrink-0" />
-                PDFs guineematin.com — 15 fichiers parsés, 2207 candidats (2020–2022)
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary-dark shrink-0" />
-                API mon-portail.gtsco-kag.org — vérification par PV (2023–2026)
-              </li>
-            </ul>
           </div>
 
           <div className="card p-8">
@@ -72,9 +57,8 @@ export default function ContactPage() {
                   Pourquoi le BEPC et le CEE ne sont-ils pas encore disponibles ?
                 </h3>
                 <p className="text-text-secondary leading-relaxed">
-                  La plateforme est conçue pour accueillir plusieurs examens guinéens, mais seul le
-                  Baccalauréat dispose aujourd&apos;hui d&apos;une source de données (PDFs guineematin.com
-                  et API officielle). Le BEPC et le CEE seront ajoutés dès qu&apos;une source fiable existera.
+                  La plateforme est conçue pour accueillir plusieurs examens guinéens. Le BEPC et le CEE
+                  seront ajoutés dès que leurs résultats seront disponibles sur la plateforme.
                 </p>
               </div>
             </div>

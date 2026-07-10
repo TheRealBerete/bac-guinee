@@ -25,8 +25,7 @@ export default async function ArchivesPage() {
             Archives 2020–2025
           </h1>
           <p className="mt-4 text-lg font-light text-text-secondary">
-            Les sessions 2020 à 2022 proviennent des PDFs publiés par guineematin.com, les sessions
-            2023 à 2025 de l&apos;API officielle mon-portail.gtsco-kag.org.
+            Retrouvez les résultats des sessions précédentes du Baccalauréat.
           </p>
         </ScrollReveal>
 
@@ -43,9 +42,6 @@ export default async function ArchivesPage() {
                   <div className="text-[40px] font-semibold tracking-[-0.02em]">{s.session}</div>
                   <div className="text-text-tertiary text-[15px] mt-1">
                     {s.count.toLocaleString()} candidat{s.count > 1 ? "s" : ""}
-                  </div>
-                  <div className="text-text-tertiary text-xs mt-3">
-                    {s.session <= 2022 ? "Source : guineematin.com" : "Source : mon-portail.gtsco-kag.org"}
                   </div>
                 </Link>
               </ScrollReveal>
