@@ -1,0 +1,1 @@
+0 3 * * * root cd /app && python -m scraper.run >> /var/log/scraper.log 2>&1

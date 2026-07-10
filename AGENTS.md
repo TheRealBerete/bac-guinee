@@ -13,7 +13,7 @@ Backend + Frontend implemented. Ready for deployment. The `backend/` directory c
 
 - **Frontend:** Next.js 16 (App Router), hosted on **Vercel** at `bac.afrovizion.com`
 - **Styling:** Tailwind CSS v4 (CSS-based config, no tailwind.config.ts)
-- **Backend API:** **FastAPI** (Python), self-hosted on **Coolify** at `bac.afrovizion.com/api` (same domain, behind reverse proxy)
+- **Backend API:** **FastAPI** (Python), self-hosted on **Coolify** at its own subdomain `bac-api.afrovizion.com` (Vercel owns the whole `bac.afrovizion.com` domain, so the backend can't live under a path like `/api` on that domain without a Vercel rewrite — a separate subdomain avoids that entirely)
 - **DB:** **SQLite** (file-based, co-located with the FastAPI backend)
 - **Scraper:** Python (pdfplumber)
 - **Deployment:** Docker via Coolify (Dockerfile)
@@ -22,18 +22,18 @@ Backend + Frontend implemented. Ready for deployment. The `backend/` directory c
 
 ### Backend (Coolify)
 
-1. Point `bac.afrovizion.com` DNS to Coolify server
-2. Deploy the `backend/` directory as a Docker service
-3. Volume mount `/app/data` to persist `bac.db` across redeploys
-4. Environment variables:
-   - `CORS_ORIGINS=https://bac.afrovizion.com` (or `*` if same-domain)
+1. Point `bac-api.afrovizion.com` DNS to the Coolify server (A record to the server IP, or CNAME if Coolify provides a hostname) — must resolve *before* Coolify can issue the SSL cert for that domain
+2. In Coolify, set `bac-api.afrovizion.com` as the domain for the backend service
+3. Deploy the `backend/` directory as a Docker service
+4. Volume mount `/app/data` to persist `bac.db` across redeploys
+5. Environment variables:
+   - `CORS_ORIGINS=https://bac.afrovizion.com`
    - `DATABASE_PATH=/app/data/bac.db`
-5. Coolify reverse proxy: route `/api/*` → backend container:8000, route `/*` → Vercel
 
 ### Frontend (Vercel)
 
 1. Connect the repo, set root directory to `frontend/`
-2. Environment variable: `NEXT_PUBLIC_API_URL=/api` (relative, since same domain)
+2. Environment variable: `NEXT_PUBLIC_API_URL=https://bac-api.afrovizion.com/api` — **must be an absolute URL**, not a relative `/api`. Almost all data fetching in this app happens server-side in React Server Components (`lib/api.ts` calls during SSR/`generateMetadata`), and a relative URL only resolves against `window.location` in a browser — Node's `fetch` on the server has no origin to resolve it against and throws, which is what caused the "Service momentanément indisponible" incident (the API subdomain was also briefly misconfigured as `api.bac.afrovizion.com` instead of the real `bac-api.afrovizion.com`)
 3. Deploy
 
 ### Local dev
@@ -178,6 +178,7 @@ CREATE TABLE candidats (
     profil      TEXT NOT NULL,            -- "SS", "SM", "SE", "SS-FA", "SE-FA", ou "GENERAL" (BEPC/CEE, pas de filière)
     profil_nom  TEXT,                     -- "Sciences Sociales", etc.
     examen      TEXT DEFAULT 'BAC',        -- "BAC", "BEPC", "CEE"
+    region      TEXT,                     -- IRE (BEPC) / DPE (CEE), NULL pour le Bac — voir section Scraper
     source      TEXT DEFAULT 'guineematin',
     created_at  TEXT DEFAULT (datetime('now')),
     updated_at  TEXT DEFAULT (datetime('now'))
@@ -194,7 +195,21 @@ CREATE INDEX idx_candidats_origine_session ON candidats (origine, session);
 
 ## Multi-examens (BAC / BEPC / CEE)
 
-Le schéma et l'API sont préparés pour trois types d'examen (`examen` = `BAC`/`BEPC`/`CEE`), mais **seul le Bac a des données réelles aujourd'hui** — aucun scraper ni API n'existe pour le BEPC ou le CEE. Le BEPC et le CEE n'ont pas de filière (pas d'équivalent SS/SM/SE), donc si des données arrivent un jour, elles doivent utiliser `profil = 'GENERAL'` (`profil_nom = "Tronc commun"`) plutôt qu'un des codes de filière du Bac, pour respecter la contrainte `profil NOT NULL`. Le frontend expose déjà un sélecteur d'examen dans les filtres de recherche (`lib/examens.ts` définit quels examens ont réellement des données) et affiche un message dédié "pas encore disponible" plutôt qu'un simple "aucun résultat" quand on filtre sur BEPC/CEE.
+Le schéma et l'API supportent trois types d'examen (`examen` = `BAC`/`BEPC`/`CEE`). Le BEPC et le CEE n'ont pas de filière (pas d'équivalent SS/SM/SE), donc leurs candidats utilisent `profil = 'GENERAL'` (`profil_nom = "Tronc commun"`) plutôt qu'un des codes de filière du Bac, pour respecter la contrainte `profil NOT NULL`. Le frontend expose un sélecteur d'examen dans les filtres de recherche (`lib/examens.ts` définit quels examens ont réellement des données) et affiche un message dédié "pas encore disponible" plutôt qu'un simple "aucun résultat" quand un examen n'a pas encore été scrapé pour la session demandée.
+
+Depuis l'ajout du scraper (voir section suivante), BAC/BEPC/CEE ont tous une source de données réelle.
+
+## Scraper indépendant (`backend/scraper/`)
+
+Le but est que la base contienne ses propres données (« souveraineté ») plutôt que de dépendre uniquement du fallback ukag à la demande (qui reste en place tel quel, voir plus bas). Le scraper télécharge et parse directement les fichiers de résultats publiés par guineematin.com.
+
+- **Découverte** (`discover.py`) : guineematin n'a pas d'URL prévisible d'une année sur l'autre. On interroge son API REST WordPress publique (`https://guineematin.com/wp-json/wp/v2/posts?search=...`) pour trouver l'article annonçant les résultats, puis on extrait le premier lien `.xlsx`/`.pdf` de son contenu. Nécessite un header `User-Agent` de navigateur (le site bloque les requêtes sans). **Limite connue** : c'est une recherche par pertinence, pas un lookup garanti — peut occasionnellement rater l'article ou en trouver un autre (constaté en test réel : la recherche CEE 2026 n'a rien trouvé, alors que l'article existait bien). À vérifier manuellement si un examen/session ne remonte rien.
+- **Format des fichiers** : BAC/BEPC/CEE ont chacun une version `.xlsx` (largement préférée, gérée par `parse_xlsx.py`) en plus d'un éventuel PDF (`parse_bac.py`, filet de secours uniquement — `pdfplumber` sur un PDF de ~1000 pages est ~100x plus lent que lire le xlsx équivalent). Colonnes communes : `Rang, ex, Prénoms et Noms, Centre, PV, Origine, Mention`. La première colonne diffère : un vrai code profil pour le Bac (SS/SM/SE/SS-FA/SE-FA, toutes filières confondues dans une seule feuille), une région (IRE pour BEPC, DPE pour CEE) pour les deux autres.
+- **Le PV n'est unique qu'au niveau régional pour BEPC/CEE** — pas au niveau national comme pour le Bac. Confirmé en testant : le PV `1242` existe à la fois à Boké et à Faranah pour le CEE 2026, deux candidats différents. C'est pourquoi la colonne `region` existe : la clé de dédoublonnage à l'ingestion est `(pv, session, profil, region)`, pas juste `(pv, session, profil)` — sans `region`, environ 85% des lignes CEE étaient silencieusement perdues en pensant que c'était des doublons.
+- **Performance de l'ingestion** (`ingest.py`) : un commit par lot (pas par ligne — un commit par ligne pour ~200k lignes CEE prenait plus de 25 minutes) et les clés `(pv, profil, region)` déjà en base sont préchargées en mémoire une fois plutôt que vérifiées par une requête SQL par ligne. Les deux optimisations ont été découvertes en testant contre des fichiers réels de taille réelle, pas en théorie.
+- **Idempotent** : rejouer le scraper ne réinsère pas les candidats déjà présents (même dédoublonnage que `seed_database()`/`insert_ukag_candidate()`).
+- **Déploiement** : `backend/Dockerfile.scraper`, service Coolify séparé du service API, même volume `/app/data` monté (donc même `bac.db`, sûr grâce au mode WAL + `busy_timeout` déjà configurés). Cron interne (`scraper/crontab`, tous les jours à 3h) ; `scraper/entrypoint.sh` recopie l'environnement du conteneur dans `/etc/environment` pour que le job cron voie `DATABASE_PATH` (cron ne hérite pas de l'environnement du conteneur par défaut).
+- **Le fallback ukag (`ukag.py`, `crossref.py`) n'a pas changé** — il reste le filet de sécurité pour les candidats pas encore scrapés.
 
 ## Search behavior
 

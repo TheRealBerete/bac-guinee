@@ -1,0 +1,28 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cron \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt requirements-scraper.txt .
+RUN pip install --no-cache-dir -r requirements-scraper.txt
+
+COPY app app
+COPY scraper scraper
+
+VOLUME ["/app/data"]
+
+ENV DATABASE_PATH=/app/data/bac.db
+ENV PYTHONUNBUFFERED=1
+
+RUN mkdir -p /app/data
+
+COPY scraper/crontab /etc/cron.d/scraper-cron
+RUN chmod 0644 /etc/cron.d/scraper-cron
+
+COPY scraper/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+CMD ["/entrypoint.sh"]

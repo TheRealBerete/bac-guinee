@@ -77,11 +77,22 @@ def init_db():
                 profil      TEXT NOT NULL,
                 profil_nom  TEXT,
                 examen      TEXT DEFAULT 'BAC',
+                region      TEXT,
                 source      TEXT DEFAULT 'guineematin',
                 created_at  TEXT DEFAULT (datetime('now')),
                 updated_at  TEXT DEFAULT (datetime('now'))
             )
         """)
+
+        # Migration idempotente : la colonne 'region' a ete ajoutee apres coup
+        # (le PV n'est unique qu'au niveau regional pour BEPC/CEE, pas au niveau
+        # national comme pour le BAC — voir AGENTS.md). CREATE TABLE IF NOT EXISTS
+        # ne touche pas une table deja existante, donc on l'ajoute a la main.
+        cur.execute("PRAGMA table_info(candidats)")
+        existing_columns = {row[1] for row in cur.fetchall()}
+        if "region" not in existing_columns:
+            cur.execute("ALTER TABLE candidats ADD COLUMN region TEXT")
+
         cur.execute("CREATE INDEX IF NOT EXISTS idx_candidats_pv ON candidats (pv)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_candidats_nom ON candidats (nom)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_candidats_origine ON candidats (origine)")
